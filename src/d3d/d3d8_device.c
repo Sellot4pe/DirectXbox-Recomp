@@ -1323,16 +1323,8 @@ static RhiView *bound_texture_view(IDirect3DBaseTexture8 *texture)
     if (texture && IDirect3DBaseTexture8_GetType(texture) == D3DRTYPE_TEXTURE) {
         D3D8Texture *tex = (D3D8Texture *)texture;
 
-        if (tex->copy_srv) {
-            static void *last;
-
-            if (last != (void *)tex) {
-                fprintf(stderr, "[COPY-SIDECAR] bind %p: %ux%u guest, %ux host\n",
-                        (void *)tex, tex->width, tex->height, tex->copy_scale);
-                last = tex;
-            }
+        if (tex->copy_srv)
             return tex->copy_srv;
-        }
     }
     return d3d8_base_srv(texture);
 }

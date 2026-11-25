@@ -1535,9 +1535,9 @@ static const IDirect3DTexture8Vtbl g_tex_vtbl = {
     tex_GetLevelDesc, tex_GetSurfaceLevel, tex_LockRect, tex_UnlockRect,
 };
 
-/* Create or return the high-resolution sidecar that receives a rectangular
- * screen copy. The guest texture itself stays at its original size, so any
- * other draw that samples it is unaffected. */
+/* Create or return the high-resolution sidecar that receives a screen copy.
+ * The guest texture itself stays at its original size, so render-target
+ * sizing, viewports, scissors and unrelated binds are unaffected. */
 RhiView *d3d8_texture_copy_view(IDirect3DBaseTexture8 *texture, unsigned factor)
 {
     D3D8Texture *tex = (D3D8Texture *)texture;
@@ -1547,13 +1547,13 @@ RhiView *d3d8_texture_copy_view(IDirect3DBaseTexture8 *texture, unsigned factor)
     if (!tex || tex->iface.lpVtbl != &g_tex_vtbl || !tex->image ||
         !(tex->usage & D3DUSAGE_RENDERTARGET))
         return NULL;
-    if (factor != 2 && factor != 4) {
+    if (!factor) {
         UINT guest = d3d8_GetGuestWidth();
         UINT host = d3d8_GetBackBufferWidth();
 
-        factor = guest && host >= guest ? host / guest : 1;
+        factor = guest && host >= guest && host % guest == 0 ? host / guest : 1;
     }
-    if (factor != 2 && factor != 4)
+    if (factor < 2 || factor > 8)
         return NULL;
     if (tex->copy_srv && tex->copy_scale == factor)
         return tex->copy_srv;
