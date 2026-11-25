@@ -1071,6 +1071,17 @@ static ULONG __stdcall tex_AddRef(IDirect3DTexture8 *self)
 
 static void tex_copy_release(D3D8Texture *tex)
 {
+    if (tex->copy_srv) {
+        RhiView *base = d3d8_base_srv((IDirect3DBaseTexture8 *)tex);
+        DWORD stage;
+
+        /* Unlock can invalidate a sidecar without another SetTexture. Put
+         * any stage that still holds it back on the guest texture's view
+         * before the sidecar is destroyed. */
+        for (stage = 0; stage < 4; stage++)
+            if (d3d8_GetStageTexture(stage) == (IDirect3DBaseTexture8 *)tex)
+                rhi_set_textures(stage, 1, &base);
+    }
     rhi_view_destroy(tex->copy_srv);
     rhi_image_destroy(tex->copy_image);
     tex->copy_srv = NULL;
