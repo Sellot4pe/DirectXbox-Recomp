@@ -46,14 +46,13 @@ const char *const bind_control_labels[BIND_CONTROLS] = {
     "Right stick press"
 };
 
-/* The runtime's DEFAULTS table. Sticks have no keyboard default: every
- * comfortable key is already a button. */
+/* The runtime's DEFAULTS table. */
 static const struct { const char *pad, *key; } k_defaults[BIND_CONTROLS] = {
     { "pad:a",          "key:Z"      },   /* a */
     { "pad:b",          "key:X"      },   /* b */
-    { "pad:x",          "key:A"      },   /* x */
-    { "pad:y",          "key:S"      },   /* y */
-    { "pad:lshoulder",  "key:W"      },   /* black */
+    { "pad:x",          "key:C"      },   /* x */
+    { "pad:y",          "key:V"      },   /* y */
+    { "pad:lshoulder",  "key:F"      },   /* black */
     { "pad:rshoulder",  "key:Q"      },   /* white */
     { "pad:start",      "key:RETURN" },   /* start */
     { "pad:back",       "key:BACK"   },   /* back */
@@ -63,10 +62,10 @@ static const struct { const char *pad, *key; } k_defaults[BIND_CONTROLS] = {
     { "pad:dpad_down",  "key:DOWN"   },
     { "pad:dpad_left",  "key:LEFT"   },
     { "pad:dpad_right", "key:RIGHT"  },
-    { "pad:ly+",        ""           },
-    { "pad:ly-",        ""           },
-    { "pad:lx-",        ""           },
-    { "pad:lx+",        ""           },
+    { "pad:ly+",        "key:W"      },
+    { "pad:ly-",        "key:S"      },
+    { "pad:lx-",        "key:A"      },
+    { "pad:lx+",        "key:D"      },
     { "pad:lthumb",     ""           },
     { "pad:ry+",        ""           },
     { "pad:ry-",        ""           },

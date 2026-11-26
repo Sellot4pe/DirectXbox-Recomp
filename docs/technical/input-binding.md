@@ -122,13 +122,12 @@ Exactly what the runtime did before this existed, so nothing changes for a run
 that has not been configured:
 
 - controller 1: XInput pad 0 **and** the keyboard -- arrows = D-pad,
-  Enter = START, Backspace = BACK, Z = A, X = B, A = X, S = Y, Q = White,
-  W = Black, E = left trigger, R = right trigger;
+  Enter = START, Backspace = BACK, Z/X/C/V = A/B/X/Y, Q/F = White/Black,
+  E/R = triggers, WASD = left stick;
 - controllers 2-4: XInput pad 1, 2, 3, pad only.
 
-The sticks have no keyboard default. Every comfortable key around WASD is
-already a button in that map, and guessing would have silently changed what
-existing runs do.
+The left stick has the standard WASD keyboard default. The right stick uses
+mouse look when `mouse_look = 1`.
 
 ## The mouse
 

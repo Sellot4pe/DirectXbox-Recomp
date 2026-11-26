@@ -91,18 +91,17 @@ static const struct {
 
 /* The built-in mapping, and the one the UI offers as "reset to defaults".
  * The keyboard column is what this runtime has always used: arrows = D-pad,
- * Enter = START, Backspace = BACK, Z = A, X = B, A = X, S = Y, Q = White,
- * W = Black, E/R = triggers. It is applied to port 1 only. Sticks have no
- * keyboard default: every comfortable key is already a button here.
+ * Enter = START, Backspace = BACK, Z/X/C/V = A/B/X/Y, Q/F = White/Black,
+ * E/R = triggers and WASD = left stick. It is applied to port 1 only.
  *
  * tools/input_ui/test_runtime_vocabulary.py reads this table out of this file
  * and fails if the UI's defaults have drifted from it. */
 static const struct { const char *control, *pad, *key; } DEFAULTS[] = {
     { "a",            "pad:a",          "key:Z"      },
     { "b",            "pad:b",          "key:X"      },
-    { "x",            "pad:x",          "key:A"      },
-    { "y",            "pad:y",          "key:S"      },
-    { "black",        "pad:lshoulder",  "key:W"      },
+    { "x",            "pad:x",          "key:C"      },
+    { "y",            "pad:y",          "key:V"      },
+    { "black",        "pad:lshoulder",  "key:F"      },
     { "white",        "pad:rshoulder",  "key:Q"      },
     { "ltrigger",     "pad:lt",         "key:E"      },
     { "rtrigger",     "pad:rt",         "key:R"      },
@@ -112,10 +111,10 @@ static const struct { const char *control, *pad, *key; } DEFAULTS[] = {
     { "dpad_down",    "pad:dpad_down",  "key:DOWN"   },
     { "dpad_left",    "pad:dpad_left",  "key:LEFT"   },
     { "dpad_right",   "pad:dpad_right", "key:RIGHT"  },
-    { "lstick_up",    "pad:ly+",        NULL         },
-    { "lstick_down",  "pad:ly-",        NULL         },
-    { "lstick_left",  "pad:lx-",        NULL         },
-    { "lstick_right", "pad:lx+",        NULL         },
+    { "lstick_up",    "pad:ly+",        "key:W"      },
+    { "lstick_down",  "pad:ly-",        "key:S"      },
+    { "lstick_left",  "pad:lx-",        "key:A"      },
+    { "lstick_right", "pad:lx+",        "key:D"      },
     { "lthumb",       "pad:lthumb",     NULL         },
     { "rstick_up",    "pad:ry+",        NULL         },
     { "rstick_down",  "pad:ry-",        NULL         },
