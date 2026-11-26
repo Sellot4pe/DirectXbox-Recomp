@@ -41,6 +41,8 @@ void                 d3d8_GetTargetGuestSize(UINT *w, UINT *h);
  * sample it, and the render-target view "the back buffer" means. */
 RhiImage *d3d8_GetSceneImage(void);
 RhiView  *d3d8_GetSceneView(void);
+/* The frame last presented, when a title reads its front buffer; else NULL. */
+RhiView  *d3d8_GetFrontView(void);
 RhiView  *d3d8_GetDefaultTargetView(void);
 /* Tell the device whether the next draw is positioned in screen
  * coordinates of the title's own making rather than through its
@@ -120,6 +122,10 @@ typedef struct D3D8TextureInfo {
 } D3D8TextureInfo;
 BOOL d3d8_texture_info(IDirect3DBaseTexture8 *texture, D3D8TextureInfo *info);
 
+/* d3d8_device.c: the host size of a screen-sized colour render target, drawn
+ * at the scene's supersampling; FALSE for any other size. */
+BOOL d3d8_scene_target_size(UINT w, UINT h, UINT *host_w, UINT *host_h);
+
 /* A cube texture's shape, for frame capture. TRUE only for a cube, so this
  * doubles as the type test against d3d8_texture_info. */
 typedef struct D3D8CubeInfo {
@@ -182,6 +188,9 @@ typedef struct D3D8Texture {
     BOOL                    dirty;
     UINT                    palette;    /* Palette index (texture stage) this P8 texture bakes */
     BOOL                    screen_copy; /* the frame was copied into it (d3d8_screencopy.c) */
+    RhiImage               *copy_image; /* optional high-resolution CopyRects sidecar */
+    RhiView                *copy_srv;   /* sampled view of copy_image */
+    UINT                    copy_scale; /* 0 until made, then the render-scale factor */
 } D3D8Texture;
 
 typedef struct D3D8Surface {
@@ -331,6 +340,7 @@ HRESULT d3d8_CreateImageSurfaceImpl(UINT Width, UINT Height, D3DFORMAT Format,
  * volume). All three implementations keep it at the same offset as
  * D3D8Texture, and the image likewise. */
 RhiView  *d3d8_base_srv(IDirect3DBaseTexture8 *texture);
+RhiView  *d3d8_texture_copy_view(IDirect3DBaseTexture8 *texture, unsigned factor);
 RhiImage *d3d8_base_resource(IDirect3DBaseTexture8 *texture);
 
 /* Read the D3DFORMAT of any base texture. */

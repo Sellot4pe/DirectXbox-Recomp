@@ -54,6 +54,9 @@ int rhi_vk_dxc_compile(uint32_t stage, const RhiShaderSource *src,
                        uint32_t **spirv, size_t *spirv_bytes, char *err, size_t err_len);
 #endif
 IDirect3DDevice8 *xbox_GetD3DDevice(void) { return NULL; }
+/* d3d8_device.c: no render-target texture is supersampled here. */
+BOOL d3d8_scene_target_size(UINT w, UINT h, UINT *hw, UINT *hh)
+{ (void)w; (void)h; (void)hw; (void)hh; return FALSE; }
 const DWORD *d3d8_GetPalette(DWORD stage) { (void)stage; return states; }
 const DWORD *d3d8_GetRenderStates(void) { return states; }
 const DWORD *d3d8_GetTSS(DWORD stage) { return stages[stage]; }
@@ -61,6 +64,7 @@ IDirect3DBaseTexture8 *d3d8_GetStageTexture(DWORD stage) { (void)stage; return N
 UINT d3d8_GetGuestWidth(void) { return 1; }
 UINT d3d8_GetGuestHeight(void) { return 1; }
 void d3d8_GetTargetGuestSize(UINT *w, UINT *h) { *w = d3d8_GetGuestWidth(); *h = d3d8_GetGuestHeight(); }
+UINT d3d8_GetBackBufferWidth(void) { return 1; }
 UINT d3d8_GetBackbufferWidth(void) { return 1; }
 UINT d3d8_GetBackbufferHeight(void) { return 1; }
 const D3DMATRIX *d3d8_GetTransform(D3DTRANSFORMSTATETYPE type) { (void)type; return &identity; }

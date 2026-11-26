@@ -1069,11 +1069,32 @@ static ULONG __stdcall tex_AddRef(IDirect3DTexture8 *self)
     return (ULONG)InterlockedIncrement(&tex_from_iface(self)->ref_count);
 }
 
+static void tex_copy_release(D3D8Texture *tex)
+{
+    if (tex->copy_srv) {
+        RhiView *base = d3d8_base_srv((IDirect3DBaseTexture8 *)tex);
+        DWORD stage;
+
+        /* Unlock can invalidate a sidecar without another SetTexture. Put
+         * any stage that still holds it back on the guest texture's view
+         * before the sidecar is destroyed. */
+        for (stage = 0; stage < 4; stage++)
+            if (d3d8_GetStageTexture(stage) == (IDirect3DBaseTexture8 *)tex)
+                rhi_set_textures(stage, 1, &base);
+    }
+    rhi_view_destroy(tex->copy_srv);
+    rhi_image_destroy(tex->copy_image);
+    tex->copy_srv = NULL;
+    tex->copy_image = NULL;
+    tex->copy_scale = 0;
+}
+
 static ULONG __stdcall tex_Release(IDirect3DTexture8 *self)
 {
     D3D8Texture *tex = tex_from_iface(self);
     LONG ref = InterlockedDecrement(&tex->ref_count);
     if (ref <= 0) {
+        tex_copy_release(tex);
         rhi_view_destroy(tex->srv);
         rhi_image_destroy(tex->image);
         free(tex->sys_mem);
@@ -1457,6 +1478,21 @@ static void d3d8_upload_mip_level(RhiImage *image, D3DFORMAT fmt,
 
     if (!rhi_device_ready() || !image) return;
 
+    /* A render target supersampled with the scene holds what the GPU drew,
+     * at more pixels than the title's copy: nothing of the title's size goes
+     * into it. */
+    {
+        RhiImageDesc d;
+        UINT mips, mip, lw;
+
+        rhi_image_get_desc(image, &d);
+        mips = d.mip_levels ? d.mip_levels : 1;
+        mip = subresource % mips;
+        lw = d.width >> mip ? d.width >> mip : 1;
+        if (d.width && lw != w && (d.bind & RHI_BIND_RENDER_TARGET))
+            return;
+    }
+
     /* Step 1: unswizzle swizzled formats into linear storage. */
     if (!d3d8_format_is_compressed(fmt) && d3d8_format_is_swizzled(fmt)) {
         linear = (BYTE *)malloc((size_t)w * h * bpp);
@@ -1493,6 +1529,7 @@ static HRESULT __stdcall tex_UnlockRect(IDirect3DTexture8 *self, UINT Level)
 
     tex->locked = FALSE;
     tex->dirty = FALSE;
+    tex_copy_release(tex);
 
     d3d8_upload_mip_level(tex->image, tex->d3d8_format,
                           tex_level_width(tex, Level),
@@ -1508,6 +1545,59 @@ static const IDirect3DTexture8Vtbl g_tex_vtbl = {
     tex_GetLevelCount,
     tex_GetLevelDesc, tex_GetSurfaceLevel, tex_LockRect, tex_UnlockRect,
 };
+
+/* Create or return the high-resolution sidecar that receives a screen copy.
+ * The guest texture itself stays at its original size, so render-target
+ * sizing, viewports, scissors and unrelated binds are unaffected. */
+RhiView *d3d8_texture_copy_view(IDirect3DBaseTexture8 *texture, unsigned factor)
+{
+    D3D8Texture *tex = (D3D8Texture *)texture;
+    RhiImageDesc id;
+    RhiViewDesc vd;
+
+    if (!tex || tex->iface.lpVtbl != &g_tex_vtbl || !tex->image ||
+        !(tex->usage & D3DUSAGE_RENDERTARGET))
+        return NULL;
+    if (!factor) {
+        UINT guest = d3d8_GetGuestWidth();
+        UINT host = d3d8_GetBackBufferWidth();
+
+        factor = guest && host >= guest && host % guest == 0 ? host / guest : 1;
+    }
+    if (factor < 2 || factor > 8)
+        return NULL;
+    if (tex->copy_srv && tex->copy_scale == factor)
+        return tex->copy_srv;
+    tex_copy_release(tex);
+
+    memset(&id, 0, sizeof id);
+    id.type = RHI_IMAGE_2D;
+    id.width = tex->width * factor;
+    id.height = tex->height * factor;
+    id.depth = 1;
+    id.mip_levels = 1;
+    id.format = tex->host_format;
+    id.samples = 1;
+    id.usage = RHI_USAGE_DEFAULT;
+    id.bind = RHI_BIND_RENDER_TARGET | RHI_BIND_SAMPLED;
+    tex->copy_image = rhi_image_create(&id, NULL);
+    if (!tex->copy_image)
+        return NULL;
+
+    memset(&vd, 0, sizeof vd);
+    vd.format = tex->host_format;
+    vd.dim = RHI_VIEW_DIM_2D;
+    vd.mip_count = vd.layer_count = 1;
+    tex->copy_srv = rhi_view_create(tex->copy_image, RHI_VIEW_SAMPLED, &vd);
+    if (!tex->copy_srv) {
+        tex_copy_release(tex);
+        return NULL;
+    }
+    tex->copy_scale = factor;
+    fprintf(stderr, "[COPY-SIDECAR] made %p: %ux%u guest -> %ux%u host (%ux)\n",
+            (void *)tex, tex->width, tex->height, id.width, id.height, factor);
+    return tex->copy_srv;
+}
 
 /* Read-only views of a 2D texture for frame capture (src/hle/hle_d3d8_record.c).
  * The vtable is the type test: cube and volume textures share this struct's
@@ -1616,6 +1706,19 @@ HRESULT d3d8_CreateTextureImpl(UINT Width, UINT Height, UINT Levels, DWORD Usage
             tex->host_format == RHI_FORMAT_D32_FLOAT) {
             td.bind |= RHI_BIND_SAMPLED;
             want_srv = 1;
+        }
+    }
+
+    /* A colour target the size of the title's screen is drawn at the
+     * scene's supersampling (d3d8_scene_target_size): the title renders a
+     * whole frame into it and puts that on the screen. The texture keeps the
+     * title's size everywhere else; only its host image is larger. */
+    if (want_srv && (Usage & D3DUSAGE_RENDERTARGET) && tex->levels == 1) {
+        UINT hw, hh;
+
+        if (d3d8_scene_target_size(Width, Height, &hw, &hh)) {
+            td.width = hw;
+            td.height = hh;
         }
     }
 
@@ -1736,6 +1839,21 @@ BOOL d3d8_format_is_linear(D3DFORMAT fmt)
 
 /* Level-0 size of a 2D texture; FALSE for a cube or volume texture, whose
  * coordinates are never in texels. */
+BOOL xbox_D3D8TextureHostSize(IDirect3DTexture8 *texture, UINT level, UINT *width,
+                              UINT *height)
+{
+    D3D8Texture *t = (D3D8Texture *)texture;
+    RhiImageDesc d;
+
+    if (!texture || IDirect3DBaseTexture8_GetType((IDirect3DBaseTexture8 *)texture) !=
+            D3DRTYPE_TEXTURE || !t->image || level >= t->levels)
+        return FALSE;
+    rhi_image_get_desc(t->image, &d);
+    if (width)  *width = d.width >> level ? d.width >> level : 1;
+    if (height) *height = d.height >> level ? d.height >> level : 1;
+    return TRUE;
+}
+
 BOOL d3d8_base_size(IDirect3DBaseTexture8 *texture, UINT *width, UINT *height)
 {
     D3D8Texture *t;

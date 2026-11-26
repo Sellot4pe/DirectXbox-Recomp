@@ -191,9 +191,25 @@ static void probe_source(const RhiOutputState *saved, const D3D8Texture *tex,
  * scale. */
 static HRESULT copy_to_texture(IDirect3DTexture8 *dst, const RECT *src, const POINT *at);
 
+/* The source the next copy samples: the scene, or the kept front buffer. */
+static RhiView *g_source_override;
+
 HRESULT xbox_D3D8CopyBackBufferToTexture(IDirect3DTexture8 *dst)
 {
     return copy_to_texture(dst, NULL, NULL);
+}
+
+HRESULT xbox_D3D8CopyFrontToTexture(IDirect3DTexture8 *dst)
+{
+    HRESULT hr;
+    RhiView *front = d3d8_GetFrontView();
+
+    if (!front)
+        return E_FAIL;
+    g_source_override = front;
+    hr = copy_to_texture(dst, NULL, NULL);
+    g_source_override = NULL;
+    return hr;
 }
 
 HRESULT xbox_D3D8CopyBackBufferRectToTexture(IDirect3DTexture8 *dst, const RECT *src,
@@ -213,6 +229,8 @@ static HRESULT copy_to_texture(IDirect3DTexture8 *dst, const RECT *src, const PO
     RhiViewport vp;
     float blend_factor[4] = { 1, 1, 1, 1 };
     UINT back_w = d3d8_GetBackBufferWidth(), back_h = d3d8_GetBackBufferHeight();
+    UINT hw, hh;
+    float tx, ty;
     void *mapped;
 
     if (!rhi_device_ready() || !tex || !tex->image || !back_w || !back_h)
@@ -220,7 +238,7 @@ static HRESULT copy_to_texture(IDirect3DTexture8 *dst, const RECT *src, const PO
     if (!create())
         return E_FAIL;
 
-    dst_image = tex->image;
+    dst_image = tex->copy_image ? tex->copy_image : tex->image;
     memset(&rtvd, 0, sizeof rtvd);
     rtvd.format = tex->host_format;
     rtvd.dim = RHI_VIEW_DIM_2D;
@@ -236,11 +254,23 @@ static HRESULT copy_to_texture(IDirect3DTexture8 *dst, const RECT *src, const PO
     rhi_output_save(&saved);
     probe_source(&saved, tex, back_w, back_h);
 
+    /* A texture may hold more host pixels than the title's (a screen-sized
+     * render target is supersampled with the scene, or a screen-copy texture
+     * has a sidecar): tx, ty host pixels per title pixel. */
+    {
+        RhiImageDesc dd;
+
+        rhi_image_get_desc(dst_image, &dd);
+        hw = dd.width ? dd.width : tex->width;
+        hh = dd.height ? dd.height : tex->height;
+    }
+    tx = tex->width ? (float)hw / (float)tex->width : 1.0f;
+    ty = tex->height ? (float)hh / (float)tex->height : 1.0f;
     vp.x = vp.y = 0.0f;
-    vp.width = (float)tex->width;
-    vp.height = (float)tex->height;
-    c.scale_x = tex->width ? (float)back_w / (float)tex->width : 1.0f;
-    c.scale_y = tex->height ? (float)back_h / (float)tex->height : 1.0f;
+    vp.width = (float)hw;
+    vp.height = (float)hh;
+    c.scale_x = hw ? (float)back_w / (float)hw : 1.0f;
+    c.scale_y = hh ? (float)back_h / (float)hh : 1.0f;
     c.off_x = c.off_y = 0.0f;
     if (src) {
         /* The rectangle is in the title's pixels and the frame may be
@@ -263,12 +293,12 @@ static HRESULT copy_to_texture(IDirect3DTexture8 *dst, const RECT *src, const PO
         if (ay < 0) { h += ay; ay = 0; }
         if (ax + w > (LONG)tex->width)  w = (LONG)tex->width - ax;
         if (ay + h > (LONG)tex->height) h = (LONG)tex->height - ay;
-        vp.x = (float)ax;
-        vp.y = (float)ay;
-        vp.width = (float)w;
-        vp.height = (float)h;
-        c.scale_x = kx;
-        c.scale_y = ky;
+        vp.x = (float)ax * tx;
+        vp.y = (float)ay * ty;
+        vp.width = (float)w * tx;
+        vp.height = (float)h * ty;
+        c.scale_x = kx / tx;
+        c.scale_y = ky / ty;
         c.off_x = (float)src->left * kx - (float)ax * kx;
         c.off_y = (float)src->top * ky - (float)ay * ky;
     }
@@ -287,7 +317,7 @@ static HRESULT copy_to_texture(IDirect3DTexture8 *dst, const RECT *src, const PO
     rhi_set_uniform_buffers(RHI_STAGE_PIXEL, 7, 1, &g.cb);
     /* Asked for every time: while frame interpolation draws an in-between
      * frame, the scene is a second image (xbox_D3D8InterpBegin). */
-    g.back_srv = d3d8_GetSceneView();
+    g.back_srv = g_source_override ? g_source_override : d3d8_GetSceneView();
     rhi_set_textures(9, 1, &g.back_srv);
     rhi_set_blend_state(g.blend, blend_factor, 0xFFFFFFFF);
     rhi_set_depth_state(g.depth, 0);
