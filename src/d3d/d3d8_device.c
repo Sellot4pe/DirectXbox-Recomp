@@ -564,6 +564,7 @@ void xbox_D3D8SetVerticalZoom(float zoom)
 static BOOL two_d_squeeze(float *k_out, float *cx_out)
 {
     float k, span;
+    unsigned width, height;
 
     if (!g_2d_squeeze || !g_device_state.height)
         return FALSE;
@@ -572,9 +573,10 @@ static BOOL two_d_squeeze(float *k_out, float *cx_out)
      * Evolution Soccer 5 draws its match HUD into its scene texture. */
     if (g_cur_rt && !scene_sized(g_cur_rt->width, g_cur_rt->height))
         return FALSE;
-    k = ((float)g_device_state.width * 9.0f) /
-        ((float)g_device_state.height * 16.0f);
-    if (!(k > 0.0f && k < 1.0f))
+    recomp_widescreen_aspect(&width, &height);
+    k = ((float)g_device_state.width * height) /
+        ((float)g_device_state.height * width);
+    if (k == 1.0f)
         return FALSE;
     *k_out = k;
     span = g_cur_rt ? (float)g_cur_rt->width * rt_scale_x()

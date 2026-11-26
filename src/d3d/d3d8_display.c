@@ -78,6 +78,7 @@ const D3D8DisplayPolicy *d3d8_display_policy(void)
                     "centre; using auto\n", v);
 
         if (g_policy.widescreen) {
+            unsigned width, height;
             /* What else widescreen takes for this title is resolved beside
              * the settings (recomp_widescreen_resolve); said here because
              * a stretched picture is the first thing anyone asks about.
@@ -101,8 +102,9 @@ const D3D8DisplayPolicy *d3d8_display_policy(void)
                 what = "Nothing has said whether this title has a 16:9 mode of its own: "
                        "one without draws 4:3 and will look stretched until its project "
                        "says so (recomp_title_widescreen) or hor_plus is set.";
+            recomp_widescreen_aspect(&width, &height);
             fprintf(stderr, "D3D8 display: widescreen, so the title's frame is presented "
-                    "at 16:9. %s%s\n", what,
+                    "at %u:%u. %s%s\n", width, height, what,
                     g_policy.centre_2d ? " All 2D but whole-screen passes is kept at 4:3."
                                        : "");
         }
@@ -189,12 +191,11 @@ void d3d8_display_output_shape(UINT scene_w, UINT scene_h,
                                UINT *shape_w, UINT *shape_h)
 {
     if (d3d8_display_wide_now()) {
-        /* The frame is anamorphic: the title squeezed a 16:9 view into
-         * whatever buffer it renders to, and the display is meant to
-         * stretch it back. Presenting it at its own shape would be the
-         * squeeze left in. */
-        if (shape_w) *shape_w = 16;
-        if (shape_h) *shape_h = 9;
+        unsigned width, height;
+
+        recomp_widescreen_aspect(&width, &height);
+        if (shape_w) *shape_w = width;
+        if (shape_h) *shape_h = height;
     } else {
         if (shape_w) *shape_w = scene_w;
         if (shape_h) *shape_h = scene_h;

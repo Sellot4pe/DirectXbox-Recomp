@@ -918,11 +918,13 @@ void recomp_window_size(int guest_w, int guest_h, int widescreen, int *w, int *h
         guest_w = 640;
         guest_h = 480;
     }
-    /* Rounded up, so the window is never narrower than 16:9: 480 rows give
-     * 854, the usual 16:9 width for them, with the presented picture one
-     * column short of it rather than a row short of 853. 720 is exact. */
-    if (widescreen)
-        guest_w = (int)(((long long)guest_h * 16 + 8) / 9);
+    /* Round up so fractional widths do not make the window too narrow. */
+    if (widescreen) {
+        unsigned width, height;
+
+        recomp_widescreen_aspect(&width, &height);
+        guest_w = (int)(((long long)guest_h * width + height - 1) / height);
+    }
     if (w) *w = guest_w;
     if (h) *h = guest_h;
 }
@@ -954,6 +956,32 @@ void recomp_widescreen_resolve(RecompWidescreen *out)
         recomp_config_lookup("RECOMP_HOR_PLUS", "hor_plus"),
         recomp_config_lookup("RECOMP_HOR_PLUS_REG", "hor_plus_register"),
         g_wide_mode, g_wide_register, out);
+    if (out && out->on && out->mode == RECOMP_WIDE_HOR_PLUS && !out->hor_plus_named) {
+        unsigned width, height;
+
+        recomp_widescreen_aspect(&width, &height);
+        out->hor_plus = (4.0 * height) / (3.0 * width);
+    }
+}
+
+void recomp_widescreen_aspect(unsigned *width, unsigned *height)
+{
+    const char *value = recomp_config_lookup("RECOMP_ASPECT_RATIO", "aspect_ratio");
+    char *end;
+    unsigned long w, h;
+
+    *width = 16;
+    *height = 9;
+    if (!value || !isdigit((unsigned char)*value))
+        return;
+    w = strtoul(value, &end, 10);
+    if (*end != ':' || !isdigit((unsigned char)end[1]))
+        return;
+    h = strtoul(end + 1, &end, 10);
+    if (*end || !w || !h || w > 65535 || h > 65535)
+        return;
+    *width = (unsigned)w;
+    *height = (unsigned)h;
 }
 
 int recomp_widescreen_guest_flag_from(int on, RecompWideMode mode)

@@ -176,6 +176,7 @@ typedef struct RecompWidescreen {
  * and widens a title with its own mode twice. The price is that a 4:3-only
  * title nobody has described looks stretched until someone does. */
 void recomp_widescreen_resolve(RecompWidescreen *out);
+void recomp_widescreen_aspect(unsigned *width, unsigned *height);
 
 /* The same from its inputs as text, with nothing read from the process:
  * what the tests drive. `hor_plus` and `reg` are the settings' values,
