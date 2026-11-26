@@ -40,12 +40,12 @@ class Defaults(unittest.TestCase):
 
     def test_the_keyboard_defaults_are_the_ones_the_runtime_always_had(self):
         # arrows = D-pad, Enter = START, Backspace = BACK, Z/X/C/V =
-        # A/B/X/Y, Q/F = White/Black, E/R = triggers, WASD = left stick.
+        # A/B/X/Y, Q/F = White/Black, RMB/LMB = triggers, WASD = left stick.
         first = bindings.default_config()["controllers"][0]["bindings"]
         expected = {
             "a": "key:Z", "b": "key:X", "x": "key:C", "y": "key:V",
-            "white": "key:Q", "black": "key:F", "ltrigger": "key:E",
-            "rtrigger": "key:R", "start": "key:RETURN", "back": "key:BACK",
+            "white": "key:Q", "black": "key:F", "ltrigger": "mouse:right",
+            "rtrigger": "mouse:left", "start": "key:RETURN", "back": "key:BACK",
             "dpad_up": "key:UP", "dpad_down": "key:DOWN",
             "dpad_left": "key:LEFT", "dpad_right": "key:RIGHT",
             "lstick_up": "key:W", "lstick_down": "key:S",

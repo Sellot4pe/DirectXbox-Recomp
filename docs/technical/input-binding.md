@@ -121,9 +121,9 @@ through (3), and a test run gets one through (1).
 Exactly what the runtime did before this existed, so nothing changes for a run
 that has not been configured:
 
-- controller 1: XInput pad 0 **and** the keyboard -- arrows = D-pad,
+- controller 1: XInput pad 0 **and** keyboard/mouse -- arrows = D-pad,
   Enter = START, Backspace = BACK, Z/X/C/V = A/B/X/Y, Q/F = White/Black,
-  E/R = triggers, WASD = left stick;
+  RMB/LMB = left/right triggers, WASD = left stick;
 - controllers 2-4: XInput pad 1, 2, 3, pad only.
 
 The left stick has the standard WASD keyboard default. The right stick uses
