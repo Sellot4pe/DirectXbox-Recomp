@@ -56,7 +56,7 @@ static const struct { const char *pad, *key; } k_defaults[BIND_CONTROLS] = {
     { "pad:rshoulder",  "key:Q"      },   /* white */
     { "pad:start",      "key:RETURN" },   /* start */
     { "pad:back",       "key:BACK"   },   /* back */
-    { "pad:lt",         "mouse:right" },  /* ltrigger */
+    { "pad:lt",         "mouse:middle" }, /* ltrigger */
     { "pad:rt",         "mouse:left"  },  /* rtrigger */
     { "pad:dpad_up",    "key:UP"     },
     { "pad:dpad_down",  "key:DOWN"   },
@@ -71,7 +71,7 @@ static const struct { const char *pad, *key; } k_defaults[BIND_CONTROLS] = {
     { "pad:ry-",        ""           },
     { "pad:rx-",        ""           },
     { "pad:rx+",        ""           },
-    { "pad:rthumb",     ""           }
+    { "pad:rthumb",     "mouse:right" }
 };
 
 void bind_defaults(BindConfig *c)

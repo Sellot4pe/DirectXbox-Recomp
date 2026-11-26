@@ -130,7 +130,7 @@ DEFAULTS = [
     ("y", "pad:y", "key:V"),
     ("black", "pad:lshoulder", "key:F"),
     ("white", "pad:rshoulder", "key:Q"),
-    ("ltrigger", "pad:lt", "mouse:right"),
+    ("ltrigger", "pad:lt", "mouse:middle"),
     ("rtrigger", "pad:rt", "mouse:left"),
     ("start", "pad:start", "key:RETURN"),
     ("back", "pad:back", "key:BACK"),
@@ -147,7 +147,7 @@ DEFAULTS = [
     ("rstick_down", "pad:ry-", None),
     ("rstick_left", "pad:rx-", None),
     ("rstick_right", "pad:rx+", None),
-    ("rthumb", "pad:rthumb", None),
+    ("rthumb", "pad:rthumb", "mouse:right"),
 ]
 
 

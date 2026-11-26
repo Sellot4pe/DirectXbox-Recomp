@@ -92,7 +92,7 @@ static const struct {
 /* The built-in mapping, and the one the UI offers as "reset to defaults".
  * The keyboard column is what this runtime has always used: arrows = D-pad,
  * Enter = START, Backspace = BACK, Z/X/C/V = A/B/X/Y, Q/F = White/Black,
- * LMB/RMB = right/left triggers and WASD = left stick. Port 1 only.
+ * LMB/MMB/RMB = fire/secondary/aim and WASD = left stick. Port 1 only.
  *
  * tools/input_ui/test_runtime_vocabulary.py reads this table out of this file
  * and fails if the UI's defaults have drifted from it. */
@@ -103,7 +103,7 @@ static const struct { const char *control, *pad, *key; } DEFAULTS[] = {
     { "y",            "pad:y",          "key:V"      },
     { "black",        "pad:lshoulder",  "key:F"      },
     { "white",        "pad:rshoulder",  "key:Q"      },
-    { "ltrigger",     "pad:lt",         "mouse:right" },
+    { "ltrigger",     "pad:lt",         "mouse:middle" },
     { "rtrigger",     "pad:rt",         "mouse:left"  },
     { "start",        "pad:start",      "key:RETURN" },
     { "back",         "pad:back",       "key:BACK"   },
@@ -120,7 +120,7 @@ static const struct { const char *control, *pad, *key; } DEFAULTS[] = {
     { "rstick_down",  "pad:ry-",        NULL         },
     { "rstick_left",  "pad:rx-",        NULL         },
     { "rstick_right", "pad:rx+",        NULL         },
-    { "rthumb",       "pad:rthumb",     NULL         },
+    { "rthumb",       "pad:rthumb",     "mouse:right" },
 };
 
 /* ---- the sources a control can be bound to ----------------------------- */
