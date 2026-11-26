@@ -124,16 +124,16 @@ KEY_NAMES = {
 # The keyboard column is the one the runtime has always used and goes on
 # controller 1 only. Mirrors DEFAULTS in src/input/input_bindings.c.
 DEFAULTS = [
-    ("a", "pad:a", "key:Z"),
+    ("a", "pad:a", "key:E"),
     ("b", "pad:b", "key:X"),
-    ("x", "pad:x", "key:C"),
+    ("x", "pad:x", "key:R"),
     ("y", "pad:y", "key:V"),
     ("black", "pad:lshoulder", "key:F"),
     ("white", "pad:rshoulder", "key:Q"),
     ("ltrigger", "pad:lt", "mouse:middle"),
     ("rtrigger", "pad:rt", "mouse:left"),
-    ("start", "pad:start", "key:RETURN"),
-    ("back", "pad:back", "key:BACK"),
+    ("start", "pad:start", "key:ESCAPE"),
+    ("back", "pad:back", "key:TAB"),
     ("dpad_up", "pad:dpad_up", "key:UP"),
     ("dpad_down", "pad:dpad_down", "key:DOWN"),
     ("dpad_left", "pad:dpad_left", "key:LEFT"),

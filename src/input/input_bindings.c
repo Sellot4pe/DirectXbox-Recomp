@@ -91,22 +91,22 @@ static const struct {
 
 /* The built-in mapping, and the one the UI offers as "reset to defaults".
  * The keyboard column is what this runtime has always used: arrows = D-pad,
- * Enter = START, Backspace = BACK, Z/X/C/V = A/B/X/Y, Q/F = White/Black,
+ * Escape = START, Tab = BACK, E/X/R/V = A/B/X/Y, Q/F = White/Black,
  * LMB/MMB/RMB = fire/secondary/aim and WASD = left stick. Port 1 only.
  *
  * tools/input_ui/test_runtime_vocabulary.py reads this table out of this file
  * and fails if the UI's defaults have drifted from it. */
 static const struct { const char *control, *pad, *key; } DEFAULTS[] = {
-    { "a",            "pad:a",          "key:Z"      },
+    { "a",            "pad:a",          "key:E"      },
     { "b",            "pad:b",          "key:X"      },
-    { "x",            "pad:x",          "key:C"      },
+    { "x",            "pad:x",          "key:R"      },
     { "y",            "pad:y",          "key:V"      },
     { "black",        "pad:lshoulder",  "key:F"      },
     { "white",        "pad:rshoulder",  "key:Q"      },
     { "ltrigger",     "pad:lt",         "mouse:middle" },
     { "rtrigger",     "pad:rt",         "mouse:left"  },
-    { "start",        "pad:start",      "key:RETURN" },
-    { "back",         "pad:back",       "key:BACK"   },
+    { "start",        "pad:start",      "key:ESCAPE" },
+    { "back",         "pad:back",       "key:TAB"    },
     { "dpad_up",      "pad:dpad_up",    "key:UP"     },
     { "dpad_down",    "pad:dpad_down",  "key:DOWN"   },
     { "dpad_left",    "pad:dpad_left",  "key:LEFT"   },

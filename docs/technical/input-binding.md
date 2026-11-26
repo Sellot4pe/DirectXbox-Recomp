@@ -122,7 +122,7 @@ Exactly what the runtime did before this existed, so nothing changes for a run
 that has not been configured:
 
 - controller 1: XInput pad 0 **and** keyboard/mouse -- arrows = D-pad,
-  Enter = START, Backspace = BACK, Z/X/C/V = A/B/X/Y, Q/F = White/Black,
+  Escape = START, Tab = BACK, E/X/R/V = A/B/X/Y, Q/F = White/Black,
   LMB/MMB/RMB = fire/secondary/aim, WASD = left stick;
 - controllers 2-4: XInput pad 1, 2, 3, pad only.
 

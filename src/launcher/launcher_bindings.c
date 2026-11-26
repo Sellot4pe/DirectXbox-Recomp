@@ -48,14 +48,14 @@ const char *const bind_control_labels[BIND_CONTROLS] = {
 
 /* The runtime's DEFAULTS table. */
 static const struct { const char *pad, *key; } k_defaults[BIND_CONTROLS] = {
-    { "pad:a",          "key:Z"      },   /* a */
+    { "pad:a",          "key:E"      },   /* a */
     { "pad:b",          "key:X"      },   /* b */
-    { "pad:x",          "key:C"      },   /* x */
+    { "pad:x",          "key:R"      },   /* x */
     { "pad:y",          "key:V"      },   /* y */
     { "pad:lshoulder",  "key:F"      },   /* black */
     { "pad:rshoulder",  "key:Q"      },   /* white */
-    { "pad:start",      "key:RETURN" },   /* start */
-    { "pad:back",       "key:BACK"   },   /* back */
+    { "pad:start",      "key:ESCAPE" },   /* start */
+    { "pad:back",       "key:TAB"    },   /* back */
     { "pad:lt",         "mouse:middle" }, /* ltrigger */
     { "pad:rt",         "mouse:left"  },  /* rtrigger */
     { "pad:dpad_up",    "key:UP"     },
